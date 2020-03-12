@@ -1,0 +1,49 @@
+Посмотрите код страницы и вывод в консоль браузера.
+
+<script src="shri-async-hw.js"></script>
+
+<script>
+    /**
+     * Author: Lazarenko Marina
+     * Variant: 7
+     *
+     * The function calculates a sum of array elements with even indexes
+     * @param array: AsyncArray
+     * @param cb: (result: Number) => void
+     * @returns {Promise<void>}
+     */
+    const sumEvenIndexValues = async (array, cb) => {
+      const promisify = (f) => (...args) => new Promise((resolve) => {
+        f.call(null, ...args, resolve);
+      });
+
+      const addValue = async (array, index, step, res) => {
+        const length = await promisify(array.length)();
+        const indexLessThanLength = await promisify(Homework.less)(index, length);
+
+        if (indexLessThanLength) {
+          const getValue = promisify(array.get)(index);
+          const getNextIndex = promisify(Homework.add)(index, 2);
+
+          const [value, nextIndex] = await Promise.all([getValue, getNextIndex]);
+          const nextRes = await promisify(Homework.add)(res, value);
+
+          return await addValue(array, nextIndex, step, nextRes);
+        }
+        return res;
+      };
+
+      try {
+        const result = await addValue(array, 0, 2, 0);
+        cb(result);
+      } catch (error) {
+        console.log("Something went wrong", error);
+      }
+    };
+
+
+    const a = new Homework.AsyncArray([1, 2, 3]);
+    sumEvenIndexValues(a, (result) => {
+      console.log("Sum of array elements with even indexes is:", result);
+    });
+</script>
